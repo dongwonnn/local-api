@@ -12,6 +12,7 @@ const MsgInput = ({ mutate, id = undefined, text = "" }) => {
 
     mutate(text, id);
   });
+
   return (
     <form className="messages__input" onSubmit={onSubmit}>
       <textarea
