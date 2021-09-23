@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
+import MsgInput from "./MsgInput";
 import MsgItem from "./MsgItem";
 
 const UserIds = ["roy", "jay"];
 const getRandomUserId = () => UserIds[Math.round(Math.round())];
 
-const msgs = Array(50)
+const originalMsgs = Array(50)
   .fill(0)
   .map((_, i) => ({
     id: 50 - i,
@@ -14,12 +15,27 @@ const msgs = Array(50)
   }));
 
 const MsgList = () => {
+  const [msgs, setMsgs] = useState(originalMsgs);
+
+  const onCreate = (text) => {
+    const newMsg = {
+      id: msgs.length + 1,
+      userId: getRandomUserId(),
+      timestamp: Date.now(),
+      text: `${msgs.length + 1} ${text}`,
+    };
+    setMsgs((msgs) => [newMsg, ...msgs]);
+  };
+
   return (
-    <ul className="messages">
-      {msgs.map((x) => (
-        <MsgItem key={x.id} {...x} />
-      ))}
-    </ul>
+    <>
+      <MsgInput mutate={onCreate} />
+      <ul className="messages">
+        {msgs.map((x) => (
+          <MsgItem key={x.id} {...x} />
+        ))}
+      </ul>
+    </>
   );
 };
 
