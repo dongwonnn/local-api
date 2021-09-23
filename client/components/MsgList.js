@@ -18,6 +18,8 @@ const MsgList = () => {
   const [msgs, setMsgs] = useState(originalMsgs);
   const [editingId, setEditingId] = useState(null);
 
+  console.log(JSON.stringify(originalMsgs));
+
   const onCreate = useCallback((text) => {
     const newMsg = {
       id: msgs.length + 1,
