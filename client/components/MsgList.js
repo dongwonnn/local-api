@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import MsgInput from "./MsgInput";
 import MsgItem from "./MsgItem";
 
@@ -16,8 +16,9 @@ const originalMsgs = Array(50)
 
 const MsgList = () => {
   const [msgs, setMsgs] = useState(originalMsgs);
+  const [editingId, setEditingId] = useState(null);
 
-  const onCreate = (text) => {
+  const onCreate = useCallback((text) => {
     const newMsg = {
       id: msgs.length + 1,
       userId: getRandomUserId(),
@@ -25,6 +26,38 @@ const MsgList = () => {
       text: `${msgs.length + 1} ${text}`,
     };
     setMsgs((msgs) => [newMsg, ...msgs]);
+  }, []);
+
+  const onUpdate = useCallback((text, id) => {
+    setMsgs((msgs) => {
+      const targetIndex = msgs.findIndex((msg) => msg.id === id);
+      if (targetIndex < 0) return;
+
+      const newMsgs = [...msgs];
+      newMsgs.splice(targetIndex, 1, {
+        ...msgs[targetIndex],
+        text,
+      });
+
+      return newMsgs;
+    });
+    doneEdit();
+  }, []);
+
+  const onDelete = (id) => {
+    setMsgs((msgs) => {
+      const targetIndex = msgs.findIndex((msg) => msg.id === id);
+      if (targetIndex < 0) return;
+
+      const newMsgs = [...msgs];
+      newMsgs.splice(targetIndex, 1);
+
+      return newMsgs;
+    });
+  };
+
+  const doneEdit = () => {
+    setEditingId(null);
   };
 
   return (
@@ -32,7 +65,14 @@ const MsgList = () => {
       <MsgInput mutate={onCreate} />
       <ul className="messages">
         {msgs.map((x) => (
-          <MsgItem key={x.id} {...x} />
+          <MsgItem
+            key={x.id}
+            {...x}
+            onUpdate={onUpdate}
+            startEdit={() => setEditingId(x.id)}
+            onDelete={() => onDelete(x.id)}
+            isEditing={editingId === x.id}
+          />
         ))}
       </ul>
     </>
