@@ -1,24 +1,14 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import MsgInput from "./MsgInput";
 import MsgItem from "./MsgItem";
+import fetcher from "../fetcher";
 
 const UserIds = ["roy", "jay"];
 const getRandomUserId = () => UserIds[Math.round(Math.round())];
 
-const originalMsgs = Array(50)
-  .fill(0)
-  .map((_, i) => ({
-    id: 50 - i,
-    userId: getRandomUserId(),
-    timestamp: 1234567890123 + (50 - i) * 1000 * 60,
-    text: `${50 - i} mock text`,
-  }));
-
 const MsgList = () => {
-  const [msgs, setMsgs] = useState(originalMsgs);
+  const [msgs, setMsgs] = useState([]);
   const [editingId, setEditingId] = useState(null);
-
-  console.log(JSON.stringify(originalMsgs));
 
   const onCreate = useCallback((text) => {
     const newMsg = {
@@ -61,6 +51,16 @@ const MsgList = () => {
   const doneEdit = () => {
     setEditingId(null);
   };
+
+  // useEffect는 async 사용을 피하고 있음. 때문에 함수를 따로 빼서 사용
+  const getMessages = async () => {
+    const msgs = await fetcher("get", "/messages");
+    setMsgs(msgs);
+  };
+
+  useEffect(() => {
+    getMessages();
+  }, []);
 
   return (
     <>
