@@ -1,42 +1,49 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import MsgInput from "./MsgInput";
 import MsgItem from "./MsgItem";
 import fetcher from "../fetcher";
+import useInfinieScroll from "../hooks/useInfinityScroll";
 
 const UserIds = ["roy", "jay"];
-const getRandomUserId = () => UserIds[Math.round(Math.round())];
 
 const MsgList = () => {
+  const {
+    query: { userId = "" },
+  } = useRouter();
   const [msgs, setMsgs] = useState([]);
   const [editingId, setEditingId] = useState(null);
+  const fetchMoreElement = useRef();
+  const intersetcing = useInfinieScroll(fetchMoreElement);
 
-  const onCreate = useCallback((text) => {
-    const newMsg = {
-      id: msgs.length + 1,
-      userId: getRandomUserId(),
-      timestamp: Date.now(),
-      text: `${msgs.length + 1} ${text}`,
-    };
+  const onCreate = async (text) => {
+    const newMsg = await fetcher("post", "messages", { text, userId });
+    if (!newMsg) throw Error("something wrong");
+
     setMsgs((msgs) => [newMsg, ...msgs]);
-  }, []);
+  };
 
-  const onUpdate = useCallback((text, id) => {
+  const onUpdate = async (text, id) => {
+    const newMsg = await fetcher("put", `messages/${id}`, { text, userId });
+
+    if (!newMsg) throw Error("something wrong");
     setMsgs((msgs) => {
       const targetIndex = msgs.findIndex((msg) => msg.id === id);
       if (targetIndex < 0) return;
 
       const newMsgs = [...msgs];
-      newMsgs.splice(targetIndex, 1, {
-        ...msgs[targetIndex],
-        text,
-      });
+      newMsgs.splice(targetIndex, 1, newMsg);
 
       return newMsgs;
     });
     doneEdit();
-  }, []);
+  };
 
-  const onDelete = (id) => {
+  const onDelete = async (id) => {
+    const receivedId = await fetcher("delete", `messages/${id}`, { userId });
+
+    if (!receivedId) throw Error("something wrong");
+
     setMsgs((msgs) => {
       const targetIndex = msgs.findIndex((msg) => msg.id === id);
       if (targetIndex < 0) return;
@@ -54,8 +61,10 @@ const MsgList = () => {
 
   // useEffect는 async 사용을 피하고 있음. 때문에 함수를 따로 빼서 사용
   const getMessages = async () => {
-    const msgs = await fetcher("get", "/messages");
-    setMsgs(msgs);
+    const newMsgs = await fetcher("get", "/messages", {
+      params: { cursor: msgs[msgs.length - 1?.id || ""] },
+    });
+    setMsgs(newMsgs);
   };
 
   useEffect(() => {
@@ -74,9 +83,11 @@ const MsgList = () => {
             startEdit={() => setEditingId(x.id)}
             onDelete={() => onDelete(x.id)}
             isEditing={editingId === x.id}
+            myId={userId}
           />
         ))}
       </ul>
+      <div ref={fetchMoreElement} />
     </>
   );
 };

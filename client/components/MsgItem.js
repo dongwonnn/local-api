@@ -10,6 +10,7 @@ const MsgItem = ({
   isEditing,
   startEdit,
   onDelete,
+  myId,
 }) => {
   return (
     <li className="message__item">
@@ -35,10 +36,12 @@ const MsgItem = ({
         text
       )}
 
-      <div className="">
-        <button onClick={startEdit}>수정</button>
-        <button onClick={onDelete}>삭제</button>
-      </div>
+      {myId === userId && (
+        <div className="">
+          <button onClick={startEdit}>수정</button>
+          <button onClick={onDelete}>삭제</button>
+        </div>
+      )}
     </li>
   );
 };
