@@ -1,13 +1,22 @@
 import React from "react";
 import MsgList from "../components/MsgList";
+import fetcher from "../fetcher";
 
-const Home = () => {
+const Home = ({ smsgs, users }) => {
   return (
-    <div>
+    <>
       <h1>Simple SNS</h1>
-      <MsgList />
-    </div>
+      <MsgList smsgs={smsgs} users={users} />
+    </>
   );
+};
+
+export const getServerSideProps = async () => {
+  const smsgs = await fetcher("get", "/messages");
+  const users = await fetcher("get", "/users");
+  return {
+    props: { smsgs, users },
+  };
 };
 
 export default Home;

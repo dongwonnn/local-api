@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const useInfinieScroll = (targetEl) => {
   const observerRef = useRef(null);
